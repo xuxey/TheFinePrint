@@ -13,8 +13,8 @@ async function success() {
             foundLinks.forEach(link => {
                 const href = link.link;
                 const button = document.createElement('button');
+                button.classList.add('found-link', 'montserrat-400');
                 button.textContent = link.text;
-                console.log('hregg', href);
                 button.addEventListener('click', createLinkButtonHandler(href, ACCESS_CODE));
                 paragraph.appendChild(button);
             });
@@ -33,7 +33,6 @@ async function success() {
             thisPageButton.addEventListener('click', createThisPageButtonHandler(currentUrl, ACCESS_CODE, pageText));
         }
     )
-
 }
 
 async function getCurrentTabURL() {
@@ -46,7 +45,6 @@ async function getCurrentTabURL() {
 
 function createLinkButtonHandler(url, accessCode) {
     return () => {
-        console.log('hi', url, accessCode);
         fetch(`${API_URL}/summary?${new URLSearchParams({ url, accessCode })}`)
             .then(response => response.json())
             .then(data => {

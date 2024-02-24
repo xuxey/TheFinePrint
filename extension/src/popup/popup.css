@@ -16,7 +16,7 @@ body {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  gap: 3px;
+  gap: 5px;
 }
 
 .access-container {
@@ -46,6 +46,13 @@ h2 {
   font-size: large;
 }
 
+.title {
+  font-family: "Allura", cursive;
+  font-weight: 400;
+  font-style: normal;
+  font-size: xx-large;
+}
+
 .allura-regular {
   font-family: "Allura", cursive;
   font-weight: 400;
@@ -64,4 +71,49 @@ h2 {
   font-optical-sizing: auto;
   font-weight: 600;
   font-style: normal;
+}
+
+.found-link {
+  -webkit-border-radius: 19;
+  -moz-border-radius: 19;
+  border-radius: 19px;
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 12px;
+  color: #4c00a3;
+  background: #ffffff;
+  padding: 8px 12px 8px 12px;
+  border: solid #4c00a3 1px;
+  text-decoration: none;
+}
+
+.found-link:hover {
+  background: #e8f6ff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.use-this-page {
+  background: #a900e6;
+  background-image: -webkit-linear-gradient(top, #a900e6, #001552);
+  background-image: -moz-linear-gradient(top, #a900e6, #001552);
+  background-image: -ms-linear-gradient(top, #a900e6, #001552);
+  background-image: -o-linear-gradient(top, #a900e6, #001552);
+  background-image: linear-gradient(to bottom, #a900e6, #001552);
+  -webkit-border-radius: 15;
+  -moz-border-radius: 15;
+  border-radius: 15px;
+  color: #ffffff;
+  font-size: 14px;
+  padding: 10px 12px 10px 12px;
+  border: solid #4c00a3 0px;
+  animation-duration: 200ms;
+  text-decoration: none;
+}
+
+.use-this-page:hover {
+  background: #001552;
+  text-decoration: none;
 }
