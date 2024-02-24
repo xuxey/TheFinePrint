@@ -3,8 +3,9 @@ from flask_cors import CORS
 from pymongo import MongoClient
 import os
 import base64
-from service import summarise, STATUS_COMPLETED, STATUS_PENDING, STATUS_FAILED
+from service import summarise, STATUS_COMPLETED, STATUS_PENDING, STATUS_FAILED, pdf_file, image_file, render_link
 from urllib.parse import unquote
+import asyncio
 
 app = Flask(__name__)
 uri = os.getenv("MONGO_DB_URL")
@@ -57,6 +58,12 @@ def POST_summarise():
     url = unquote(url)
     print("decoded url: ", url)
 
+    k = str(url.split('.'))
+    if k[-1] == 'pdf':
+        pdf_file(url)
+    elif k[-1] in ['jpeg', 'jpg', 'png', 'tiff']:
+        image_file(url)
+
     encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')
     filename = os.path.join(DATA_DIRECTORY, encoded_bytes)
 
@@ -72,7 +79,6 @@ def POST_summarise():
 
     print("output file is in progress")
     return RESPONSE_PENDING, RESPONSE_PENDING_CODE
-
 
 @app.route('/summary', methods=['GET'])
 def GET_summary():
@@ -108,6 +114,49 @@ def GET_summary():
 
     print("unknown status for url:", url, data["status"])
     return "", 500
+
+@app.route('/summarise_link', methods=['POST'])
+def POST_summarise_link():
+    access_code = request.args.get("access_code")
+    url = request.args.get("url")
+
+    if not access_code or not url:
+        print("the access code or url is missing")
+        return RESPONSE_INVALID, RESPONSE_INVALID_CODE
+
+    if access_code not in VALID_ACCESS_CODES:
+        print("the access code is invalid")
+        return RESPONSE_UNAUTHORIZED, REPONSE_UNAUTHORIZED_CODE
+
+    url = unquote(url)
+    print("decoded url: ", url)
+
+    encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')
+    filename = os.path.join(DATA_DIRECTORY, encoded_bytes)
+
+    k = str(url.split('.'))
+    if k[-1] == 'pdf':
+        pdf_file(url, filename)
+    elif k[-1] in ['jpeg', 'jpg', 'png', 'tiff']:
+        image_file(url, filename, k[-1])
+    else:
+        asyncio.get_event_loop().run_until_complete(render_link(url, filename))
+
+    encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')
+    filename = os.path.join(DATA_DIRECTORY, encoded_bytes)
+
+    with open(filename, "w") as f:
+        f.write(request.data.decode("utf-8"))
+
+    print("saved input data to file: ", filename)
+
+    data = summarise(db_requests, url, filename)
+    if data["status"] == STATUS_COMPLETED:
+        print("output file already exists!")
+        return send_file(data["output_file"])
+
+    print("output file is in progress")
+    return RESPONSE_PENDING, RESPONSE_PENDING_CODE
 
 
 if __name__ == '__main__':

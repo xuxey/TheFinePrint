@@ -4,6 +4,9 @@ import threading
 import urllib.request
 import base64
 import os
+import time
+import asyncio
+from pyppeteer import launch
 
 STATUS_PENDING = "pending"
 STATUS_COMPLETED = "completed"
@@ -11,11 +14,6 @@ STATUS_FAILED = "failed"
 
 
 def function_caller(db, url):
-    k = str(url.split('.'))
-    if k[-1] == 'pdf':
-        pdf_file(url)
-    elif k[-1] in ['jpeg', 'jpg', 'png', 'tiff']:
-        image_file(url)
     try:
         query_result = db.find_one({"url": url})
         input_file = query_result["input_file"]
@@ -33,26 +31,31 @@ def function_caller(db, url):
         db.update_one(
             {"url": url}, {"$set": {"status": STATUS_FAILED}})
 
+async def render_link(url):
+    browser = await launch()
+    page = await browser.newPage()
+    await page.goto(url)
+    time.sleep(4)
 
-def pdf_file(url):
+    content = await page.evaluate("document.body.innerText", force_expr=True)
+    print(content)
+
+    await browser.close()
+
+def pdf_file(url, text_file):
     response = urllib.request.urlopen(url)
-    encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')
-    pdf_file = os.path.join("data", encoded_bytes + ".pdf")
-    text_file = os.path.join("data", encoded_bytes)
+    pdf_file = text_file + ".pdf"
     with open(pdf_file, 'wb') as file:
         file.write(response.read())
 
-    print("PDF save Completed")
     os.system(f"pdftotext {pdf_file} {text_file}")
     print("PDF to TEXT completed")
 
 
-def image_file(url):
+def image_file(url, text_file, ext):
     response = urllib.request.urlopen(url)
-    encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')
 
-    image_file = os.path.join("data", encoded_bytes + ".jpeg")
-    text_file = os.path.join("data", encoded_bytes)
+    image_file = text_file + ext
 
     with open(image_file, 'wb') as file:
         file.write(response.read())
