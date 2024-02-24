@@ -4,7 +4,10 @@ from llm_query.gpt_query import *
 import threading
 import urllib.request
 import base64
+import time
 from pymongo import MongoClient
+
+FILE_NAME_LENGTH = 50
 
 # check db if entry for url exists,
 # if exists, send row as json
@@ -12,28 +15,32 @@ from pymongo import MongoClient
 # also, return row as json
 
 def function_caller(db, url):
+    k = str(url.split('.'))
+    if k[-1] == 'pdf':
+        pdf_file(url)
+    elif k[-1] in ['jpeg','jpg','png','tiff']:
+        image_file(url)
     query_engine = LLM_query()
     query_engine.request(db, url)
 
 def pdf_file(url):
     response = urllib.request.urlopen(url)
-    file = open("./data/document.pdf", 'wb')
+    encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')
+    file = open("./data/" + encoded_bytes[:50] +".pdf", 'wb')
     file.write(response.read())
     file.close()
     print("PDF save Completed")
-    encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')
-    os.system("pdftotext ./data/document.pdf ./data/"+encoded_bytes[:20])
+    os.system("pdftotext ./data/" + encoded_bytes[:50] +".pdf ./data/"+encoded_bytes)
 
 def image_file(url):
     response = urllib.request.urlopen(url)
-    file = open("./data/image.jpeg", 'wb')
+    encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')
+    file = open("./data/" + encoded_bytes[:50] +".jpeg", 'wb')
     file.write(response.read())
     file.close()
     print("Image save Completed")
-    encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')[:20]
-    os.system("tesseract ./data/image.jpeg ./data/"+encoded_bytes)
+    os.system("tesseract ./data/" + encoded_bytes[:50] +".jpeg ./data/"+encoded_bytes)
     os.rename('./data/'+encoded_bytes+'.txt','./data/'+encoded_bytes)
-
 
 def summarise(db, url, input_file_name):
     # get the results in db if any
@@ -68,3 +75,4 @@ def get_summary(db, url):
 
 if __name__ == "__main__":
     image_file("https://www.lifewire.com/thmb/lWlCQDkZkvbWxKhkJZ6yjOJ_J4k=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/ScreenShot2020-04-20at10.03.23AM-d55387c4422940be9a4f353182bd778c.jpg")
+    pdf_file("https://saurabhg.web.illinois.edu/teaching/ece549/sp2024/slides/lec02_perspective.pdf")
