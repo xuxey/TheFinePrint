@@ -1,0 +1,60 @@
+html,
+body {
+  width: 300px;
+  height: 500px;
+}
+
+.hidden {
+  display: none;
+}
+
+.container {
+  padding: 5px;
+}
+
+.access-container {
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 2;
+}
+
+input {
+  padding: 4px;
+  border-radius: 5px;
+}
+
+h1 {
+  font-size: xx-large;
+  font-family: "Allura", cursive;
+  font-weight: 400;
+  font-style: normal;
+}
+
+h2 {
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-size: large;
+}
+
+.allura-regular {
+  font-family: "Allura", cursive;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.montserrat-400 {
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.montserrat-600 {
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-style: normal;
+}

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Allura&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="popup.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+
+  <body class="container">
+    <div id="popup-content">
+      <h1>The Fine Print</h1>
+      <div class="access-container">
+        <label class="montserrat-400">Access Code</label>
+        <input type="text" id="access-code" />
+      </div>
+
+      <div>
+        <h2>I found the following links</h2>
+        <p id="links-found"></p>
+      </div>
+    </div>
+
+    <div id="error-content" class="hidden">
+      <p>Can't read the fine print on this page.</p>
+      <p>Try a different page.</p>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>

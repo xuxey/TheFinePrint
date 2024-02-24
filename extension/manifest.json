@@ -9,10 +9,12 @@
       "48": "icons/tfp.png"
     },
 
-    "sidebar_action": {
+    "permissions": ["activeTab"],
+
+    "browser_action": {
         "default_icon": "icons/tfp.png",
-        "default_title" : "The Fine Print",
-        "default_panel": "src/panel.html"
+        "default_title": "The Fine Print",
+        "default_popup": "src/popup/popup.html"
     },
   
     "content_scripts": [
@@ -20,14 +22,6 @@
         "matches": ["<all_urls>"],
         "js": ["src/fineprint.js"]
       }
-    ],
-
-    "commands": {
-        "_execute_sidebar_action": {
-            "suggested_key": {
-            "default": "Ctrl+Shift+Y"
-            }
-        }
-    }
+    ]
 }
   
