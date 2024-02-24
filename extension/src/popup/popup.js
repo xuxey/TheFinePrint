@@ -30,6 +30,12 @@ async function success() {
 
             const thisPageButton = document.getElementById('this-page-button');
             thisPageButton.addEventListener('click', createThisPageButtonHandler(currentUrl, ACCESS_CODE, pageText));
+
+            const backToMenuButton = document.getElementById('back-to-menu');
+            backToMenuButton.addEventListener('click', () => {
+                document.getElementById('summary-section').classList.add('hidden');
+                document.getElementById('links-section').classList.remove('hidden');
+            });
         }
     )
 }
@@ -87,6 +93,8 @@ function createThisPageButtonHandler(url, accessCode, pageText) {
         })
             .then(data => {
                 console.log('Success:', data);
+                document.getElementById('links-section').classList.add(['hidden'])
+                document.getElementById('summary-section').classList.remove(['hidden'])
                 document.getElementById('gpt-output').innerText = 'loading...'
                 setTimeout(pollRequest, POLLING_INTERVAL_MS);
             })

@@ -24,8 +24,8 @@
 		class="h-2/3 aspect-auto"
 	/>
 </span>
-<div id="how-it-works" class="pb-20">
-	<h2 class="text-4xl font-serif mb-4">How It Works</h2>
+<div class="pb-20">
+	<h2 class="text-4xl font-serif mb-4 -mt-20" id="how-it-works">How It Works</h2>
 	<div class="flex flex-col gap-10">
 		<div class="w-2/3">
 			<h2 class="text-2xl text-blue-700">
