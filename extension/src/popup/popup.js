@@ -71,6 +71,7 @@ function createThisPageButtonHandler(url, accessCode, pageText) {
                         setTimeout(pollRequest, POLLING_INTERVAL_MS);
                     } else {
                         console.error('Got Status:', response.status);
+                        document.getElementById('gpt-output').innerText = `Failed with status: ${response.status} ${response.statusText}`
                     }
                 })
                 .catch(error => {
