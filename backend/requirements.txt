@@ -1,3 +1,6 @@
 flask
-dotenv
+flask_cors
+python-dotenv
+pymongo
 requests
+langchain
