@@ -12,9 +12,9 @@ STATUS_FAILED = "failed"
 
 def function_caller(db, url):
     k = str(url.split('.'))
-    if k[-2] == 'pdf':
+    if k[-1] == 'pdf':
         pdf_file(url)
-    elif k[-2] in ['jpeg', 'jpg', 'png', 'tiff']:
+    elif k[-1] in ['jpeg', 'jpg', 'png', 'tiff']:
         image_file(url)
     try:
         query_result = db.find_one({"url": url})
