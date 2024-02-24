@@ -4,3 +4,4 @@ python-dotenv
 pymongo
 requests
 langchain
+openai
