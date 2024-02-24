@@ -65,7 +65,9 @@ function createThisPageButtonHandler(url, accessCode, pageText) {
             fetch(`${API_URL}/summary?${new URLSearchParams({ url, access_code: accessCode })}`)
                 .then(response => {
                     if (response.status === 200) {
-                        document.getElementById('gpt-output').innerText = response.text()
+                        response.text().then(
+                            text => document.getElementById('gpt-output').innerText = text
+                        )
                     } else if (response.status == 201) {
                         console.log(`Request failed, retrying in ${POLLING_INTERVAL_MS}ms:`, response.status);
                         setTimeout(pollRequest, POLLING_INTERVAL_MS);
