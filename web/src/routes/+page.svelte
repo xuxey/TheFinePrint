@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
+	import ImageUpload from '../lib/components/imageUpload.svelte';
 </script>
 
 <span class="flex flex-col md:flex-row h-screen items-center -mt-28 py-20">
@@ -9,7 +10,7 @@
 			<div class="text-blue-700">Privacy</div>
 		</span>
 		<div class="mt-3 text-2xl">
-			For too long, organizations have used long, drawn out legal documents to keep you in the dark.
+			Until now, long drawn out legal documents to keep you in the dark.
 			<br />
 			<br />
 			With
@@ -24,8 +25,8 @@
 		class="h-2/3 aspect-auto"
 	/>
 </span>
-<div class="pb-20">
-	<h2 class="text-4xl font-serif mb-4 -mt-20" id="how-it-works">How It Works</h2>
+<div class="pb-20 pt-28" id="how-it-works">
+	<h2 class="text-4xl font-serif mb-4 -mt-20">How It Works</h2>
 	<div class="flex flex-col gap-10">
 		<div class="w-2/3">
 			<h2 class="text-2xl text-blue-700">
@@ -59,7 +60,7 @@
 	</div>
 </div>
 
-<div id="how-it-works" class="pb-20">
+<div id="traps" class="pb-20">
 	<h2 class="text-4xl font-serif mb-4">Common Booby Traps</h2>
 	<div class="flex flex-col gap-10">
 		<div class="flex-row">
