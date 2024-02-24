@@ -49,40 +49,41 @@ async function getCurrentTabURL() {
     return parsedUrl.toString();
 }
 
+function createPollRequest(url, access_code) {
+    return () =>
+        fetch(`${API_URL}/summary?${new URLSearchParams({ url, access_code })}`)
+            .then(response => {
+                console.log('poll fetched');
+                if (response.status === 200) {
+                    response.text().then(
+                        text => {
+                            document.getElementById('gpt-output').innerText = text
+                            document.getElementById('loader').classList.add(['hidden'])
+                        }
+                    )
+                } else if (response.status == 201) {
+                    console.log(`Request failed, retrying in ${POLLING_INTERVAL_MS}ms:`, response.status);
+                    setTimeout(createPollRequest(url, access_code), POLLING_INTERVAL_MS);
+                } else {
+                    console.error('Got Status:', response.status);
+                    document.getElementById('gpt-output').innerText = `Failed with status: ${response.status} ${response.statusText}`
+                    document.getElementById('loader').classList.add(['hidden'])
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+}
+
 function createLinkButtonHandler(url, accessCode) {
     return () => {
-        function pollRequest() {
-            // Make a GET request
-            fetch(`${API_URL}/summary?${new URLSearchParams({ url, access_code: accessCode })}`)
-                .then(response => {
-                    if (response.status === 200) {
-                        response.text().then(
-                            text => {
-                                document.getElementById('gpt-output').innerText = text
-                                document.getElementById('loader').classList.add(['hidden'])
-                            }
-                        )
-                    } else if (response.status == 201) {
-                        console.log(`Request failed, retrying in ${POLLING_INTERVAL_MS}ms:`, response.status);
-                        setTimeout(pollRequest, POLLING_INTERVAL_MS);
-                    } else {
-                        console.error('Got Status:', response.status);
-                        document.getElementById('gpt-output').innerText = `Failed with status: ${response.status} ${response.statusText}`
-                        document.getElementById('loader').classList.add(['hidden'])
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
-        }
-
         fetch(`${API_URL}/summarise_link?${new URLSearchParams({ url, access_code: accessCode })}`, { method: 'POST' })
             .then(data => {
                 console.log('Success:', data);
                 document.getElementById('links-section').classList.add(['hidden'])
                 document.getElementById('summary-section').classList.remove(['hidden'])
                 document.getElementById('loader').classList.remove(['hidden'])
-                setTimeout(pollRequest, POLLING_INTERVAL_MS);
+                setTimeout(createPollRequest(url, accessCode), POLLING_INTERVAL_MS);
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -92,31 +93,6 @@ function createLinkButtonHandler(url, accessCode) {
 
 function createThisPageButtonHandler(url, accessCode, pageText) {
     return () => {
-        function pollRequest() {
-            // Make a GET request
-            fetch(`${API_URL}/summary?${new URLSearchParams({ url, access_code: accessCode })}`)
-                .then(response => {
-                    if (response.status === 200) {
-                        response.text().then(
-                            text => {
-                                document.getElementById('gpt-output').innerText = text
-                                document.getElementById('loader').classList.add(['hidden'])
-                            }
-                        )
-                    } else if (response.status == 201) {
-                        console.log(`Request failed, retrying in ${POLLING_INTERVAL_MS}ms:`, response.status);
-                        setTimeout(pollRequest, POLLING_INTERVAL_MS);
-                    } else {
-                        console.error('Got Status:', response.status);
-                        document.getElementById('gpt-output').innerText = `Failed with status: ${response.status} ${response.statusText}`
-                        document.getElementById('loader').classList.add(['hidden'])
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
-        }
-
         fetch(`${API_URL}/summarise?${new URLSearchParams({ url, access_code: accessCode })}`, {
             method: 'POST',
             headers: {
@@ -130,7 +106,7 @@ function createThisPageButtonHandler(url, accessCode, pageText) {
                 document.getElementById('summary-section').classList.remove(['hidden'])
                 document.getElementById('loader').classList.remove(['hidden'])
 
-                setTimeout(pollRequest, POLLING_INTERVAL_MS);
+                setTimeout(createPollRequest(url, accessCode), POLLING_INTERVAL_MS);
             })
             .catch(error => {
                 console.error('Error:', error);
