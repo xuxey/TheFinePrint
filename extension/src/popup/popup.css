@@ -12,11 +12,18 @@ body {
   padding: 5px;
 }
 
+.links-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
 .access-container {
   padding: 5px;
   display: flex;
   flex-direction: column;
-  gap: 2;
+  gap: 2px;
 }
 
 input {

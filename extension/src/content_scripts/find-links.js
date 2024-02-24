@@ -10,7 +10,7 @@
     window.hasRun = true;
 
     const anchorLinks = document.querySelectorAll('a');
-    const keywords = ['privacy', 'service', 'cookie', 'policy'];
+    const keywords = ['privacy', 'service', 'cookie', 'policy', 'terms'];
     let matches = [];
 
     anchorLinks.forEach((link) => {
@@ -22,6 +22,12 @@
         }
     });
 
-    console.log(matches);
-    document.getElementById('found-links').innerHTML = matches;
+    const links = matches.map(match => {
+        const parsedUrl = new URL(match.href);
+        const link = parsedUrl.origin + parsedUrl.pathname
+        const text = match.text;
+        return { link, text }
+    })
+
+    browser.runtime.sendMessage({ foundLinks: links, pageText: document.body.innerText })
 })();
