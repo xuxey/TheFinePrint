@@ -26,7 +26,7 @@ REPONSE_UNAUTHORIZED_CODE = 400
 RESPONSE_UNAVAILABLE_CODE = 401
 RESPONSE_INVALID_CODE = 405
 
-INPUT_DIRECTORY = "./data/input"
+DATA_DIRECTORY = "./data"
 
 
 @app.route("/", methods=["GET"])
@@ -46,7 +46,7 @@ def POST_summarise():
         return RESPONSE_UNAUTHORIZED, REPONSE_UNAUTHORIZED_CODE
 
     encoded_bytes = base64.b64encode(url.encode('utf-8'))
-    filename = os.path.join(INPUT_DIRECTORY, encoded_bytes)
+    filename = os.path.join(DATA_DIRECTORY, encoded_bytes)
     f = open(filename, "w")
     f.write(request.content)
 
