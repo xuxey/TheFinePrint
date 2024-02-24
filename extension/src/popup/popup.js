@@ -21,8 +21,6 @@ async function success() {
         }
     )
 
-
-
     const currentUrl = encodeURI(await getCurrentTabURL());
     browser.storage.local.get('pageText').then(
         message => {
@@ -45,8 +43,10 @@ async function getCurrentTabURL() {
 
 function createLinkButtonHandler(url, accessCode) {
     return () => {
-        fetch(`${API_URL}/summary?${new URLSearchParams({ url, accessCode })}`)
-            .then(response => response.json())
+        // TODO: Update this for backend
+        fetch(`${API_URL}/summarise?${new URLSearchParams({ url, accessCode })}`, {
+            method: "POST",
+        })
             .then(data => {
                 console.log('Success:', data);
             })
@@ -65,7 +65,6 @@ function createThisPageButtonHandler(url, accessCode, pageText) {
             },
             body: pageText
         })
-            .then(response => response.json())
             .then(data => {
                 console.log('Success:', data);
             })
