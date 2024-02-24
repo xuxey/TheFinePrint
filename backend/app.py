@@ -1,12 +1,17 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, send_file
+from flask_cors import CORS
 from pymongo import MongoClient
 import os
+import base64
+from service import summarise
 
 app = Flask(__name__)
 uri = os.getenv("MONGO_DB_URL")
 client = MongoClient(uri)
 db = client['hackillinois']
 db_requests = db['requests']
+
+CORS(app, resources={r"*": {"origins": "*"}})
 
 VALID_ACCESS_CODES = ['access_code1', 'access_code2', 'access_code3']
 
@@ -77,8 +82,9 @@ def GET_summary():
         return RESPONSE_PENDING, RESPONSE_PENDING_CODE
 
     elif data["status"] == STATUS_FAILED:
-        retry_summarise()
-        return RESPONSE_PENDING, RESPONSE_PENDING_CODE
+        # retry_summarise()
+        # return RESPONSE_PENDING, RESPONSE_PENDING_CODE
+        return "failed to get summary", 500
 
     elif data["status"] == STATUS_COMPLETED:
         return send_file(data["output_file"]), RESPONSE_OK
