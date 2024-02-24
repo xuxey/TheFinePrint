@@ -11,6 +11,7 @@ export default {
       backgroundImage: {
         'site': "url('/gradient-bg.svg')",
         'site2': "url('/gradient-bg2.svg')",
+        'blue-waves': "url('backgrounds/blue-waves.svg')",
       }
     },
   },
