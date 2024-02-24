@@ -2,10 +2,8 @@ from datetime import datetime, timedelta
 from llm_query.gpt_query import LLM_query
 import threading
 import urllib.request
-import base64
 import os
 import time
-import asyncio
 from pyppeteer import launch
 
 STATUS_PENDING = "pending"
@@ -15,15 +13,12 @@ STATUS_FAILED = "failed"
 
 def function_caller(db, url):
     try:
-        query_result = db.find_one({"url": url})
-        input_file = query_result["input_file"]
-        output_file = input_file + "_out"
-
         query_engine = LLM_query()
-        query_engine.request(input_file, output_file)
+        query_result = db.find_one({"url": url})
+        query_engine.request(
+            query_result["input_file"], query_result["output_file"])
 
-        db.update_one({"url": url}, {
-                      "$set": {"status": STATUS_COMPLETED, "output_file": output_file}})
+        db.update_one({"url": url}, {"$set": {"status": STATUS_COMPLETED}})
         print(f"completed summary for url: {url}")
 
     except Exception as e:
@@ -31,23 +26,20 @@ def function_caller(db, url):
         db.update_one(
             {"url": url}, {"$set": {"status": STATUS_FAILED}})
 
-async def render_link(db, url, filename):
-    new_row = {
-            "url": url,
-            "timestamp": datetime.now(),
-            "status": STATUS_PENDING,
-            "input_file": filename,
-            "output_file": "",
-        }
+
+async def render_link(db, url, filename, timeout=4):
     browser = await launch()
     page = await browser.newPage()
     await page.goto(url)
-    time.sleep(4)
+    time.sleep(timeout)
 
     content = await page.evaluate("document.body.innerText", force_expr=True)
-    print(content)
+    with open(filename, "w") as f:
+        f.write(content)
+        print(f"saved rendered text to file: {filename}")
 
     await browser.close()
+
 
 def pdf_file(url, text_file):
     response = urllib.request.urlopen(url)
@@ -74,29 +66,30 @@ def image_file(url, text_file, ext):
 
 
 def summarise(db, url, input_file_name):
+    output_file_name = input_file_name + "_out"
     query_result = db.find_one({"url": url})
 
     if query_result is not None:
+        print("found row for url: ", url, query_result)
         # validate if the file is a day old
-        if query_result["timestamp"] >= datetime.now() - timedelta(days=1):
+        if query_result["status"] == STATUS_COMPLETED and query_result["timestamp"] >= datetime.now() - timedelta(days=1):
             return query_result
         else:
-            db.update_one({"url": url}, {"$set": {
-                "timestamp": datetime.now(), "status": STATUS_PENDING, "output_file": ""}})
+            db.update_one({"url": url}, {
+                          "$set": {"timestamp": datetime.now(), "status": STATUS_PENDING}})
             # generate summary in background thread
             threading.Thread(target=function_caller, args=[db, url]).start()
             return query_result
     else:
-        new_row = {
+        db.insert_one({
             "url": url,
             "timestamp": datetime.now(),
             "status": STATUS_PENDING,
             "input_file": input_file_name,
-            "output_file": "",
-        }
-        insert_result = db.insert_one(new_row)
+            "output_file": output_file_name
+        })
         threading.Thread(target=function_caller, args=[db, url]).start()
-        return new_row
+        return db.find_one({"url": url})
 
 
 if __name__ == "__main__":
