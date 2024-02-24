@@ -6,43 +6,85 @@ app = Flask(__name__)
 uri = os.getenv("MONGO_DB_URL")
 client = MongoClient(uri)
 db = client['hackillinois']
-collection = db['requests']
+db_requests = db['requests']
 
-# List of valid access codes
 VALID_ACCESS_CODES = ['access_code1', 'access_code2', 'access_code3']
+
+STATUS_PENDING = "pending"
+STATUS_COMPLETED = "completed"
+STATUS_FAILED = "failed"
+
+RESPONSE_OK = ""
+RESPONSE_PENDING = "In progress"
+RESPONSE_UNAUTHORIZED = "wrong access code"
+RESPONSE_UNAVAILABLE = "summary does not exist"
+RESPONSE_INVALID = "request param is missing"
+
+RESPONSE_OK_CODE = 200
+RESPONSE_PENDING_CODE = 201
+REPONSE_UNAUTHORIZED_CODE = 400
+RESPONSE_UNAVAILABLE_CODE = 401
+RESPONSE_INVALID_CODE = 405
+
+INPUT_DIRECTORY = "./data/input"
+
+
+@app.route("/", methods=["GET"])
+def GET_index():
+    return "hello", 200
 
 
 @app.route('/summarise', methods=['POST'])
-def summarise():
-    data = request.json
-    access_code = data.get('access_code')
-    url = data.get('url')
+def POST_summarise():
+    access_code = request.args.get("access_code")
+    url = request.args.get("url")
 
     if not access_code or not url:
-        return jsonify({'error': 'Missing required parameters.'}), 400
+        return RESPONSE_INVALID, RESPONSE_INVALID_CODE
 
     if access_code not in VALID_ACCESS_CODES:
-        return jsonify({'error': 'Unauthorized'}), 401
+        return RESPONSE_UNAUTHORIZED, REPONSE_UNAUTHORIZED_CODE
 
-    # Your summarization logic here
+    encoded_bytes = base64.b64encode(url.encode('utf-8'))
+    filename = os.path.join(INPUT_DIRECTORY, encoded_bytes)
+    f = open(filename, "w")
+    f.write(request.content)
 
-    return jsonify({'message': 'Summarization successful'}), 200
+    data = summarise(db_requests, url, filename)
+    if data["status"] == STATUS_COMPLETED:
+        return send_file(data["output_file"]), RESPONSE_OK
+
+    return RESPONSE_PENDING, RESPONSE_PENDING_CODE
 
 
 @app.route('/summary', methods=['GET'])
-def summary():
-    access_code = request.args.get('access_code')
-    url = request.args.get('url')
+def GET_summary():
+    access_code = request.args.get("access_code")
+    url = request.args.get("url")
 
     if not access_code or not url:
-        return jsonify({'error': 'Missing required parameters.'}), 400
+        return RESPONSE_INVALID, RESPONSE_INVALID_CODE
 
     if access_code not in VALID_ACCESS_CODES:
-        return jsonify({'error': 'Unauthorized'}), 401
+        return RESPONSE_UNAUTHORIZED, REPONSE_UNAUTHORIZED_CODE
 
-    # Your logic to retrieve summary from MongoDB based on URL and access_code
+    data = db_requests.find_one({"url": url})
 
-    return jsonify({'summary': 'Your summary content'}), 200
+    if not data:
+        return RESPONSE_UNAVAILABLE, RESPONSE_UNAVAILABLE_CODE
+
+    if data["status"] == STATUS_PENDING:
+        return RESPONSE_PENDING, RESPONSE_PENDING_CODE
+
+    elif data["status"] == STATUS_FAILED:
+        retry_summarise()
+        return RESPONSE_PENDING, RESPONSE_PENDING_CODE
+
+    elif data["status"] == STATUS_COMPLETED:
+        return send_file(data["output_file"]), RESPONSE_OK
+
+    print("unknown status for url:", url)
+    return "", 500
 
 
 if __name__ == '__main__':
