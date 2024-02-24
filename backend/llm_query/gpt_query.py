@@ -19,9 +19,13 @@ class LLM_query:
         # qeuery mongodb for file_name
         query_result = db.find_one({"url": url})
         file_path = query_result["input_file"]
-        with open(file_path, 'r') as fh:
-            content = fh.readlines()
-        print("LLM:Read the input file")
+
+        if os.path.isfile(file_path):
+            with open(file_path, 'r') as fh:
+                content = fh.readlines()
+            print("LLM:Read the input file")
+        else:
+            raise "Input file not found"
         
         prompt_template = ChatPromptTemplate.from_template(self.prompt_dict[prompt_type])
         customer_messages = prompt_template.format_messages(

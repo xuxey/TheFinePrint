@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 from llm_query.prompts import terms_conditions
 from llm_query.gpt_query import *
 import threading
+import urllib.request
+import base64
 from pymongo import MongoClient
 
 # check db if entry for url exists,
@@ -12,6 +14,26 @@ from pymongo import MongoClient
 def function_caller(db, url):
     query_engine = LLM_query()
     query_engine.request(db, url)
+
+def pdf_file(url):
+    response = urllib.request.urlopen(url)
+    file = open("./data/document.pdf", 'wb')
+    file.write(response.read())
+    file.close()
+    print("PDF save Completed")
+    encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')
+    os.system("pdftotext ./data/document.pdf ./data/"+encoded_bytes[:20])
+
+def image_file(url):
+    response = urllib.request.urlopen(url)
+    file = open("./data/image.jpeg", 'wb')
+    file.write(response.read())
+    file.close()
+    print("Image save Completed")
+    encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')[:20]
+    os.system("tesseract ./data/image.jpeg ./data/"+encoded_bytes)
+    os.rename('./data/'+encoded_bytes+'.txt','./data/'+encoded_bytes)
+
 
 def summarise(db, url, input_file_name):
     # get the results in db if any
@@ -43,3 +65,6 @@ def summarise(db, url, input_file_name):
 
 def get_summary(db, url):
     pass
+
+if __name__ == "__main__":
+    image_file("https://www.lifewire.com/thmb/lWlCQDkZkvbWxKhkJZ6yjOJ_J4k=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/ScreenShot2020-04-20at10.03.23AM-d55387c4422940be9a4f353182bd778c.jpg")
