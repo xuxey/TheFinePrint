@@ -1,7 +1,9 @@
 
 const PORT = 6969
-const API_URL = `http://127.0.0.1:${PORT}`
+// const API_URL = `http://127.0.0.1:${PORT}`
+const API_URL = `http://172.22.152.6:6969`
 const ACCESS_CODE = 'access_code1'
+const POLLING_INTERVAL_MS = 3000
 
 async function success() {
     const paragraph = document.getElementById('found-links');
@@ -44,7 +46,7 @@ async function getCurrentTabURL() {
 function createLinkButtonHandler(url, accessCode) {
     return () => {
         // TODO: Update this for backend
-        fetch(`${API_URL}/summarise?${new URLSearchParams({ url, accessCode })}`, {
+        fetch(`${API_URL}/summarise?${new URLSearchParams({ url, access_code: accessCode })}`, {
             method: "POST",
         })
             .then(data => {
@@ -57,8 +59,26 @@ function createLinkButtonHandler(url, accessCode) {
 }
 
 function createThisPageButtonHandler(url, accessCode, pageText) {
-    return () =>
-        fetch(`${API_URL}/summarise?${new URLSearchParams({ url, accessCode })}`, {
+    return () => {
+        function pollRequest() {
+            // Make a GET request
+            fetch(`${API_URL}/summary?${new URLSearchParams({ url, access_code: accessCode })}`)
+                .then(response => {
+                    if (response.status === 200) {
+                        document.getElementById('gpt-output').innerText = response.text()
+                    } else if (response.status == 201) {
+                        console.log(`Request failed, retrying in ${POLLING_INTERVAL_MS}ms:`, response.status);
+                        setTimeout(pollRequest, POLLING_INTERVAL_MS);
+                    } else {
+                        console.error('Got Status:', response.status);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        fetch(`${API_URL}/summarise?${new URLSearchParams({ url, access_code: accessCode })}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'text/plain'
@@ -67,10 +87,13 @@ function createThisPageButtonHandler(url, accessCode, pageText) {
         })
             .then(data => {
                 console.log('Success:', data);
+                document.getElementById('gpt-output').innerText = 'loading...'
+                setTimeout(pollRequest, POLLING_INTERVAL_MS);
             })
             .catch(error => {
                 console.error('Error:', error);
             });
+    }
 }
 
 function reportExecuteScriptError(error) {
