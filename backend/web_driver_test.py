@@ -10,7 +10,7 @@ db = client['hackillinois']
 db_requests = db['requests']
 
 
-async def render_link(url, filename):
+async def main():
     browser = await launch()
     page = await browser.newPage()
     url = "https://www.facebook.com/privacy/policy"
