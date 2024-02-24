@@ -1,6 +1,7 @@
 from flask import Flask, request, send_file
 from flask_cors import CORS
 from pymongo import MongoClient
+import datetime
 import os
 import base64
 import asyncio
@@ -134,18 +135,28 @@ def POST_summarise_link():
     encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')
     filename = os.path.join(DATA_DIRECTORY, encoded_bytes)
 
-    k = str(url.split('.'))
-    if k[-1] == 'pdf':
-        pdf_file(url, filename)
-    elif k[-1] in ['jpeg', 'jpg', 'png', 'tiff']:
-        image_file(url, filename, k[-1])
-    else:
-        #asyncio.get_event_loop().run_until_complete(render_link(url, filename))
-        #command = ["python3", "web_driver_test", url, filename]
-        #process = subprocess.run(command)
-        pid = os.fork()
-        if pid == 0:
-            asyncio.get_event_loop().run_until_complete(render_link(url, filename))
+    query_result = db.find_one({"url": url})
+
+    if query_result is None:
+        k = str(url.split('.'))
+        if k[-1] == 'pdf':
+            pdf_file(url, filename)
+        elif k[-1] in ['jpeg', 'jpg', 'png', 'tiff']:
+            image_file(url, filename, k[-1])
+        else:
+            #asyncio.get_event_loop().run_until_complete(render_link(url, filename))
+            #command = ["python3", "web_driver_test", url, filename]
+            #process = subprocess.run(command)
+            new_row = {
+                "url": url,
+                "timestamp": datetime.now(),
+                "status": STATUS_PENDING,
+                "input_file": filename,
+                "output_file": "",
+            }
+            pid = os.fork()
+            if pid == 0:
+                asyncio.get_event_loop().run_until_complete(render_link(url, filename))
 
     encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')
     filename = os.path.join(DATA_DIRECTORY, encoded_bytes)
