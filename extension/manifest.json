@@ -1,0 +1,33 @@
+{
+    "manifest_version": 2,
+    "name": "TheFinePrint",
+    "version": "1.0",
+  
+    "description": "Privacy made transparent",
+  
+    "icons": {
+      "48": "icons/tfp.png"
+    },
+
+    "sidebar_action": {
+        "default_icon": "icons/tfp.png",
+        "default_title" : "The Fine Print",
+        "default_panel": "src/panel.html"
+    },
+  
+    "content_scripts": [
+      {
+        "matches": ["<all_urls>"],
+        "js": ["src/fineprint.js"]
+      }
+    ],
+
+    "commands": {
+        "_execute_sidebar_action": {
+            "suggested_key": {
+            "default": "Ctrl+Shift+Y"
+            }
+        }
+    }
+}
+  
