@@ -35,6 +35,7 @@ async function success() {
             backToMenuButton.addEventListener('click', () => {
                 document.getElementById('summary-section').classList.add('hidden');
                 document.getElementById('links-section').classList.remove('hidden');
+                document.getElementById('gpt-output').innerText = ''
             });
         }
     )
