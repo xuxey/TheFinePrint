@@ -1,5 +1,6 @@
 
-const API_URL = 'http://127.0.0.1'
+const PORT = 6969
+const API_URL = `http://127.0.0.1:${PORT}`
 const ACCESS_CODE = 'access_code1'
 
 async function success() {
@@ -10,11 +11,12 @@ async function success() {
             if (!foundLinks) return;
 
             foundLinks.forEach(link => {
-                const a = document.createElement('button');
-                a.href = link.href;
-                a.textContent = link.text;
-                paragraph.appendChild(a);
-                paragraph.appendChild(document.createElement('br'));
+                const href = link.link;
+                const button = document.createElement('button');
+                button.textContent = link.text;
+                console.log('hregg', href);
+                button.addEventListener('click', createLinkButtonHandler(href, ACCESS_CODE));
+                paragraph.appendChild(button);
             });
         }
     )
@@ -42,8 +44,21 @@ async function getCurrentTabURL() {
     return parsedUrl.toString();
 }
 
+function createLinkButtonHandler(url, accessCode) {
+    return () => {
+        console.log('hi', url, accessCode);
+        fetch(`${API_URL}/summary?${new URLSearchParams({ url, accessCode })}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+}
+
 function createThisPageButtonHandler(url, accessCode, pageText) {
-    console.log('thisPageButtonHandler');
     return () =>
         fetch(`${API_URL}/summarise?${new URLSearchParams({ url, accessCode })}`, {
             method: 'POST',
