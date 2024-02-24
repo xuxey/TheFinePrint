@@ -11,6 +11,8 @@ client = MongoClient(uri)
 db = client['hackillinois']
 db_requests = db['requests']
 
+db_requests.drop()
+
 CORS(app, resources={r"*": {"origins": "*"}})
 
 VALID_ACCESS_CODES = ['access_code1', 'access_code2', 'access_code3']
@@ -50,14 +52,15 @@ def POST_summarise():
     if access_code not in VALID_ACCESS_CODES:
         return RESPONSE_UNAUTHORIZED, REPONSE_UNAUTHORIZED_CODE
 
-    encoded_bytes = base64.b64encode(url.encode('utf-8'))
+    encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')
     filename = os.path.join(DATA_DIRECTORY, encoded_bytes)
     f = open(filename, "w")
-    f.write(request.content)
+    body = request.data.decode("utf-8")
+    f.write(body)
 
     data = summarise(db_requests, url, filename)
     if data["status"] == STATUS_COMPLETED:
-        return send_file(data["output_file"]), RESPONSE_OK
+        return send_file(data["output_file"])
 
     return RESPONSE_PENDING, RESPONSE_PENDING_CODE
 
@@ -87,7 +90,7 @@ def GET_summary():
         return "failed to get summary", 500
 
     elif data["status"] == STATUS_COMPLETED:
-        return send_file(data["output_file"]), RESPONSE_OK
+        return send_file(data["output_file"])
 
     print("unknown status for url:", url)
     return "", 500
