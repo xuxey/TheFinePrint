@@ -1,9 +1,16 @@
 import asyncio
+import os
 from pyppeteer import launch
+import subprocess
 import time
+from pymongo import MongoClient
+uri = os.getenv("MONGO_DB_URL")
+client = MongoClient(uri)
+db = client['hackillinois']
+db_requests = db['requests']
 
 
-async def main():
+async def render_link(url, filename):
     browser = await launch()
     page = await browser.newPage()
     url = "https://www.facebook.com/privacy/policy"

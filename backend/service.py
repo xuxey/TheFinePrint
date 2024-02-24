@@ -31,7 +31,14 @@ def function_caller(db, url):
         db.update_one(
             {"url": url}, {"$set": {"status": STATUS_FAILED}})
 
-async def render_link(url):
+async def render_link(db, url, filename):
+    new_row = {
+            "url": url,
+            "timestamp": datetime.now(),
+            "status": STATUS_PENDING,
+            "input_file": filename,
+            "output_file": "",
+        }
     browser = await launch()
     page = await browser.newPage()
     await page.goto(url)
