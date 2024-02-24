@@ -1,7 +1,7 @@
 from flask import Flask, request, send_file
 from flask_cors import CORS
 from pymongo import MongoClient
-import datetime
+from datetime import datetime
 import os
 import base64
 import asyncio
@@ -11,11 +11,10 @@ from urllib.parse import unquote
 app = Flask(__name__)
 uri = os.getenv("MONGO_DB_URL")
 client = MongoClient(uri)
-db = client['hackillinois']
-db_requests = db['requests']
+db = client['hackillinois']['requests']
 
 print("dropping all rows...")
-db_requests.drop()
+db.drop()
 
 CORS(app, resources={r"*": {"origins": "*"}})
 
@@ -73,13 +72,14 @@ def POST_summarise():
 
     print("saved input data to file: ", filename)
 
-    data = summarise(db_requests, url, filename)
+    data = summarise(db, url, filename)
     if data["status"] == STATUS_COMPLETED:
         print("output file already exists!")
         return send_file(data["output_file"])
 
     print("output file is in progress")
     return RESPONSE_PENDING, RESPONSE_PENDING_CODE
+
 
 @app.route('/summary', methods=['GET'])
 def GET_summary():
@@ -94,7 +94,7 @@ def GET_summary():
         print("the access code is invalid")
         return RESPONSE_UNAUTHORIZED, REPONSE_UNAUTHORIZED_CODE
 
-    data = db_requests.find_one({"url": url})
+    data = db.find_one({"url": url})
     print("db result: ", data)
 
     if not data:
@@ -116,6 +116,7 @@ def GET_summary():
     print("unknown status for url:", url, data["status"])
     return "", 500
 
+
 @app.route('/summarise_link', methods=['POST'])
 def POST_summarise_link():
     access_code = request.args.get("access_code")
@@ -135,38 +136,34 @@ def POST_summarise_link():
     encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')
     filename = os.path.join(DATA_DIRECTORY, encoded_bytes)
 
+    print("looking for url in database...")
     query_result = db.find_one({"url": url})
 
+    # process pdf/image/html to generate input file as plain text
     if query_result is None:
+        db.insert_one({
+            "url": url,
+            "timestamp": datetime.now(),
+            "status": STATUS_PENDING,
+            "input_file": filename,
+            "output_file": filename + "_out",
+        })
+
         k = str(url.split('.'))
         if k[-1] == 'pdf':
             pdf_file(url, filename)
         elif k[-1] in ['jpeg', 'jpg', 'png', 'tiff']:
             image_file(url, filename, k[-1])
         else:
-            #asyncio.get_event_loop().run_until_complete(render_link(url, filename))
-            #command = ["python3", "web_driver_test", url, filename]
-            #process = subprocess.run(command)
-            new_row = {
-                "url": url,
-                "timestamp": datetime.now(),
-                "status": STATUS_PENDING,
-                "input_file": filename,
-                "output_file": "",
-            }
             pid = os.fork()
             if pid == 0:
-                asyncio.get_event_loop().run_until_complete(render_link(url, filename))
+                asyncio.get_event_loop().run_until_complete(render_link(db, url, filename))
+                exit(0)
+            else:
+                os.wait()
 
-    encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')
-    filename = os.path.join(DATA_DIRECTORY, encoded_bytes)
-
-    with open(filename, "w") as f:
-        f.write(request.data.decode("utf-8"))
-
-    print("saved input data to file: ", filename)
-
-    data = summarise(db_requests, url, filename)
+    print("summarising input text...")
+    data = summarise(db, url, filename)
     if data["status"] == STATUS_COMPLETED:
         print("output file already exists!")
         return send_file(data["output_file"])
@@ -176,4 +173,4 @@ def POST_summarise_link():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=6969, debug=True)
