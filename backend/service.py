@@ -1,78 +1,90 @@
 from datetime import datetime, timedelta
-from llm_query.prompts import terms_conditions
 from llm_query.gpt_query import *
 import threading
 import urllib.request
 import base64
-import time
-from pymongo import MongoClient
+import os
 
-FILE_NAME_LENGTH = 50
+STATUS_PENDING = "pending"
+STATUS_COMPLETED = "completed"
+STATUS_FAILED = "failed"
 
-# check db if entry for url exists,
-# if exists, send row as json
-# else, create row and start llm process in background.
-# also, return row as json
 
 def function_caller(db, url):
     k = str(url.split('.'))
-    if k[-1] == 'pdf':
+    if k[-2] == 'pdf':
         pdf_file(url)
-    elif k[-1] in ['jpeg','jpg','png','tiff']:
+    elif k[-2] in ['jpeg', 'jpg', 'png', 'tiff']:
         image_file(url)
-    query_engine = LLM_query()
-    query_engine.request(db, url)
+    try:
+        query_result = db.find_one({"url": url})
+        input_file = query_result["input_file"]
+        output_file = input_file + "_out"
+
+        query_engine = LLM_query()
+        query_engine.request(input_file, output_file)
+
+        db.update_one({"url": url}, {
+                      "$set": {"status": STATUS_COMPLETED, "output_file": output_file}})
+        print(f"completed summary for url: {url}")
+
+    except Exception as e:
+        print(f"failed to get summary for url: {url}: {e}")
+        result = db.update_one(
+            {"url": url}, {"$set": {"status": STATUS_FAILED}})
+
 
 def pdf_file(url):
     response = urllib.request.urlopen(url)
     encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')
-    file = open("./data/" + encoded_bytes[:50] +".pdf", 'wb')
+    file = open("./data/" + encoded_bytes[:50] + ".pdf", 'wb')
     file.write(response.read())
     file.close()
     print("PDF save Completed")
-    os.system("pdftotext ./data/" + encoded_bytes[:50] +".pdf ./data/"+encoded_bytes)
+    os.system("pdftotext ./data/" +
+              encoded_bytes[:50] + ".pdf ./data/"+encoded_bytes)
+
 
 def image_file(url):
     response = urllib.request.urlopen(url)
     encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')
-    file = open("./data/" + encoded_bytes[:50] +".jpeg", 'wb')
+    file = open("./data/" + encoded_bytes[:50] + ".jpeg", 'wb')
     file.write(response.read())
     file.close()
     print("Image save Completed")
-    os.system("tesseract ./data/" + encoded_bytes[:50] +".jpeg ./data/"+encoded_bytes)
-    os.rename('./data/'+encoded_bytes+'.txt','./data/'+encoded_bytes)
+    os.system("tesseract ./data/" +
+              encoded_bytes[:50] + ".jpeg ./data/"+encoded_bytes)
+    os.rename('./data/'+encoded_bytes+'.txt', './data/'+encoded_bytes)
+
 
 def summarise(db, url, input_file_name):
-    # get the results in db if any
     query_result = db.find_one({"url": url})
-    if query_result != None:
+
+    if query_result is not None:
         # validate if the file is a day old
         if query_result["timestamp"] >= datetime.now() - timedelta(days=1):
-            status = query_result["status"]
-            output_file = query_result["output_file"]
-            return {"status": status, "output_file": output_file}
+            return query_result
         else:
-            result = db.update_one({"url": url}, {"$set": {"timestamp": datetime.now(), "status": "pending", "output_file": ""}})
+            result = db.update_one({"url": url}, {"$set": {
+                                   "timestamp": datetime.now(), "status": STATUS_PENDING, "output_file": ""}})
+            # generate summary in background thread
             threading.Thread(target=function_caller, args=[db, url]).start()
-            return {"status": "pending", "output_file": ''}    
+            return query_result
+    else:
+        new_row = {
+            "url": url,
+            "timestamp": datetime.now(),
+            "status": STATUS_PENDING,
+            "input_file": input_file_name,
+            "output_file": "",
+        }
+        insert_result = db.insert_one(new_row)
+        threading.Thread(target=function_caller, args=[db, url]).start()
+        return new_row
 
-    new_row = {
-        "url": url,
-        "timestamp": datetime.now(),
-        "status": "progress",
-        "input_file": input_file_name,
-        "output_file": "",
-    }
-    insert_result = db.insert_one(new_row)
-    threading.Thread(target=function_caller, args=[db, url]).start()
-    return {"status": "pending", "output_file": ''}    
-
-# return db entry if exists, or None
-
-
-def get_summary(db, url):
-    pass
 
 if __name__ == "__main__":
-    image_file("https://www.lifewire.com/thmb/lWlCQDkZkvbWxKhkJZ6yjOJ_J4k=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/ScreenShot2020-04-20at10.03.23AM-d55387c4422940be9a4f353182bd778c.jpg")
-    pdf_file("https://saurabhg.web.illinois.edu/teaching/ece549/sp2024/slides/lec02_perspective.pdf")
+    # image_file("https://www.lifewire.com/thmb/lWlCQDkZkvbWxKhkJZ6yjOJ_J4k=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/ScreenShot2020-04-20at10.03.23AM-d55387c4422940be9a4f353182bd778c.jpg")
+    image_file("https://img.freepik.com/free-photo/painting-mountain-lake-with-mountain-background_188544-9126.jpg?w=1380&t=st=1708795229~exp=1708795829~hmac=105479cc667f25fd930257be2fc12cfeee170a64d920900bd8ec5c22db15b0b9")
+    pdf_file(
+        "https://saurabhg.web.illinois.edu/teaching/ece549/sp2024/slides/lec02_perspective.pdf")

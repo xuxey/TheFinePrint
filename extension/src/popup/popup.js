@@ -1,7 +1,6 @@
-
 const PORT = 6969
 // const API_URL = `http://127.0.0.1:${PORT}`
-const API_URL = `http://172.22.152.6:6969`
+const API_URL = "http://172.22.152.6:6969"
 const ACCESS_CODE = 'access_code1'
 const POLLING_INTERVAL_MS = 3000
 
@@ -45,10 +44,8 @@ async function getCurrentTabURL() {
 
 function createLinkButtonHandler(url, accessCode) {
     return () => {
-        // TODO: Update this for backend
-        fetch(`${API_URL}/summarise?${new URLSearchParams({ url, access_code: accessCode })}`, {
-            method: "POST",
-        })
+        fetch(`${API_URL}/summary?${new URLSearchParams({ url, access_code: accessCode })}`)
+            // .then(response => response.json())
             .then(data => {
                 console.log('Success:', data);
             })
