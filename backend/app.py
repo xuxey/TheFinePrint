@@ -3,9 +3,9 @@ from flask_cors import CORS
 from pymongo import MongoClient
 import os
 import base64
+import asyncio
 from service import summarise, STATUS_COMPLETED, STATUS_PENDING, STATUS_FAILED, pdf_file, image_file, render_link
 from urllib.parse import unquote
-import asyncio
 
 app = Flask(__name__)
 uri = os.getenv("MONGO_DB_URL")
@@ -140,7 +140,12 @@ def POST_summarise_link():
     elif k[-1] in ['jpeg', 'jpg', 'png', 'tiff']:
         image_file(url, filename, k[-1])
     else:
-        asyncio.get_event_loop().run_until_complete(render_link(url, filename))
+        #asyncio.get_event_loop().run_until_complete(render_link(url, filename))
+        #command = ["python3", "web_driver_test", url, filename]
+        #process = subprocess.run(command)
+        pid = os.fork()
+        if pid == 0:
+            asyncio.get_event_loop().run_until_complete(render_link(url, filename))
 
     encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')
     filename = os.path.join(DATA_DIRECTORY, encoded_bytes)
