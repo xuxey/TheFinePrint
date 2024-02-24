@@ -88,6 +88,7 @@ def GET_summary():
         return RESPONSE_UNAUTHORIZED, REPONSE_UNAUTHORIZED_CODE
 
     data = db_requests.find_one({"url": url})
+    print("db result: ", data)
 
     if not data:
         print("url does not exist in database...")
@@ -105,7 +106,7 @@ def GET_summary():
         print("success")
         return send_file(data["output_file"])
 
-    print("unknown status for url:", url, data)
+    print("unknown status for url:", url, data["status"])
     return "", 500
 
 

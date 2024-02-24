@@ -1,4 +1,3 @@
-
 const PORT = 6969
 // const API_URL = `http://127.0.0.1:${PORT}`
 const API_URL = "http://172.22.152.6:6969"
@@ -45,10 +44,15 @@ async function getCurrentTabURL() {
 
 function createLinkButtonHandler(url, accessCode) {
     return () => {
+<<<<<<< HEAD
         // TODO: Update this for backend
         fetch(`${API_URL}/summarise?${new URLSearchParams({ url, access_code: accessCode })}`, {
             method: "POST",
         })
+=======
+        fetch(`${API_URL}/summary?${new URLSearchParams({ url, access_code: accessCode })}`)
+            // .then(response => response.json())
+>>>>>>> c3ca32b (update)
             .then(data => {
                 console.log('Success:', data);
             })
@@ -59,6 +63,7 @@ function createLinkButtonHandler(url, accessCode) {
 }
 
 function createThisPageButtonHandler(url, accessCode, pageText) {
+<<<<<<< HEAD
     return () => {
         function pollRequest() {
             // Make a GET request
@@ -79,6 +84,9 @@ function createThisPageButtonHandler(url, accessCode, pageText) {
                 });
         }
 
+=======
+    return () =>
+>>>>>>> c3ca32b (update)
         fetch(`${API_URL}/summarise?${new URLSearchParams({ url, access_code: accessCode })}`, {
             method: 'POST',
             headers: {
@@ -86,6 +94,10 @@ function createThisPageButtonHandler(url, accessCode, pageText) {
             },
             body: pageText
         })
+<<<<<<< HEAD
+=======
+            // .then(response => response.json())
+>>>>>>> c3ca32b (update)
             .then(data => {
                 console.log('Success:', data);
                 document.getElementById('gpt-output').innerText = 'loading...'
