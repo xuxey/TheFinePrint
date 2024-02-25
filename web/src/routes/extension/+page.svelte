@@ -25,9 +25,8 @@
 					extension on the official marketplace. In the meantime, please download the source code
 					directly using the button below!
 					<br />
-					<!-- TODO: Point to zip file -->
 					<a
-						href="/extension"
+						href="https://github.com/xuxey/TheFinePrint/raw/main/tfp-firefox.zip"
 						class="w-fit mx-auto flex flex-row bg-gradient-to-r max-h-16 from-blue-800 to-purple-800 rounded-xl px-5 py-3 duration-200 items-center gap-4 text-white font-semibold my-4 hover:scale-105"
 					>
 						Download the Extension
