@@ -10,7 +10,7 @@
 
 	const sendImageRequest = async () => {
 		var data = new FormData();
-		data.append('file', files[0]);
+		data.append('file-upload', files[0]);
 
 		const url = generateRandomString(10);
 		const response = await fetch(
@@ -53,11 +53,7 @@
 </script>
 
 <div class="flex flex-col gap-8 w-full items-center">
-	<FileDropzone
-		name="image-upload"
-		bind:files
-		accept="image/png, image/jpeg, image/jpg, image/tiff"
-	>
+	<FileDropzone name="file-upload" bind:files accept="image/png, image/jpeg, image/jpg, image/tiff">
 		<svelte:fragment slot="message">Upload an image</svelte:fragment>
 		<svelte:fragment slot="meta">Choose from PNG, JPEG, JPG or Tiff</svelte:fragment>
 	</FileDropzone>
