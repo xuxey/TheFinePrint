@@ -12,7 +12,7 @@
 	const sendDocumentRequest = async () => {
 		var data = new FormData();
 		data.append('file-upload', files[0]);
-		console.log(data);
+		gptOutput = '';
 
 		const url = generateRandomString(10);
 		const response = await fetch(

@@ -11,6 +11,7 @@
 	const sendImageRequest = async () => {
 		var data = new FormData();
 		data.append('file-upload', files[0]);
+		gptOutput = '';
 
 		const url = generateRandomString(10);
 		const response = await fetch(
