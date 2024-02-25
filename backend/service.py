@@ -95,4 +95,4 @@ def summarise(db, url, input_file_name):
 if __name__ == "__main__":
     #image_file("https://www.lifewire.com/thmb/lWlCQDkZkvbWxKhkJZ6yjOJ_J4k=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/ScreenShot2020-04-20at10.03.23AM-d55387c4422940be9a4f353182bd778c.jpg")
     #image_file("https://img.freepik.com/free-photo/painting-mountain-lake-with-mountain-background_188544-9126.jpg")
-    pdf_file("https://greenstrealty2.managebuilding.com/Resident/api/files/download?fileId=7758284&download=1",'greens')
+    pdf_file("https://tmpfiles.org/4309934/skm_c450i17122309020.pdf",'greens')

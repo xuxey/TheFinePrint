@@ -58,12 +58,6 @@ def POST_summarise():
     url = unquote(url)
     print("decoded url: ", url)
 
-    k = str(url.split('.'))
-    if k[-1] == 'pdf':
-        pdf_file(url)
-    elif k[-1] in ['jpeg', 'jpg', 'png', 'tiff']:
-        image_file(url)
-
     encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')
     filename = os.path.join(DATA_DIRECTORY, encoded_bytes)
 
