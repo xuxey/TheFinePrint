@@ -143,18 +143,126 @@ def POST_summarise_link():
             "output_file": filename + "_out",
         })
 
-        k = str(url.split('.'))
-        if k[-1] == 'pdf':
-            pdf_file(url, filename)
-        elif k[-1] in ['jpeg', 'jpg', 'png', 'tiff']:
-            image_file(url, filename, k[-1])
+        #k = str(url.split('.'))
+        #if k[-1] == 'pdf':
+        #    pdf_file(url, filename)
+        #elif k[-1] in ['jpeg', 'jpg', 'png', 'tiff']:
+        #    image_file(url, filename, k[-1])
+        #else:
+        pid = os.fork()
+        if pid == 0:
+            asyncio.get_event_loop().run_until_complete(render_link(db, url, filename))
+            exit(0)
         else:
-            pid = os.fork()
-            if pid == 0:
-                asyncio.get_event_loop().run_until_complete(render_link(db, url, filename))
-                exit(0)
-            else:
-                os.wait()
+            os.wait()
+
+    print("summarising input text...")
+    data = summarise(db, url, filename)
+    if data["status"] == STATUS_COMPLETED:
+        print("output file already exists!")
+        return send_file(data["output_file"])
+
+    print("output file is in progress")
+    return RESPONSE_PENDING, RESPONSE_PENDING_CODE
+
+
+@app.route('/summarise_pdf', methods=['POST'])
+def POST_summarise_pdf():
+    access_code = request.args.get("access_code")
+    url = request.args.get("url")
+    if request.files["file-upload"]:
+        file = request.files["file-upload"]
+        if file.mimetype != 'application/pdf':
+            print("Attached file is not a pdf")
+            return "Attached file is not a pdf", RESPONSE_INVALID_CODE
+    else:
+        print("Error in accessing attached pdf")
+        return "Error in accessing attached pdf", RESPONSE_INVALID_CODE
+
+    if not access_code or not url:
+        print("the access code or url is missing")
+        return RESPONSE_INVALID, RESPONSE_INVALID_CODE
+
+    if access_code not in VALID_ACCESS_CODES:
+        print("the access code is invalid")
+        return RESPONSE_UNAUTHORIZED, REPONSE_UNAUTHORIZED_CODE
+
+    url = unquote(url)
+    print("decoded url: ", url)
+
+    encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')
+    filename = os.path.join(DATA_DIRECTORY, encoded_bytes)
+
+    print("looking for url in database...")
+    query_result = db.find_one({"url": url})
+    file.save(filename+'.pdf')
+
+    # process pdf/image/html to generate input file as plain text
+    if query_result is None:
+        db.insert_one({
+            "url": url,
+            "timestamp": datetime.now(),
+            "status": STATUS_PENDING,
+            "input_file": filename,
+            "output_file": filename + "_out",
+        })
+
+    pdf_file(filename+'.pdf', filename)
+
+
+    print("summarising input text...")
+    data = summarise(db, url, filename)
+    if data["status"] == STATUS_COMPLETED:
+        print("output file already exists!")
+        return send_file(data["output_file"])
+
+    print("output file is in progress")
+    return RESPONSE_PENDING, RESPONSE_PENDING_CODE
+
+
+@app.route('/summarise_image', methods=['POST'])
+def POST_summarise_image():
+    access_code = request.args.get("access_code")
+    url = request.args.get("url")
+    if request.files["file-upload"]:
+        file = request.files["file-upload"]
+        if 'image' not in file.mimetype:
+            print("Attached file is not an image")
+            return "Attached file is not an image", RESPONSE_INVALID_CODE
+    else:
+        print("Error in accessing attached image")
+        return "Error in accessing attached image", RESPONSE_INVALID_CODE
+
+    if not access_code or not url:
+        print("the access code or url is missing")
+        return RESPONSE_INVALID, RESPONSE_INVALID_CODE
+
+    if access_code not in VALID_ACCESS_CODES:
+        print("the access code is invalid")
+        return RESPONSE_UNAUTHORIZED, REPONSE_UNAUTHORIZED_CODE
+
+    url = unquote(url)
+    print("decoded url: ", url)
+
+    encoded_bytes = base64.b64encode(url.encode('utf-8')).decode('utf-8')
+    filename = os.path.join(DATA_DIRECTORY, encoded_bytes)
+    file.save(filename+'.image')
+
+    print("looking for url in database...")
+    query_result = db.find_one({"url": url})
+
+    # process pdf/image/html to generate input file as plain text
+    if query_result is None:
+        db.insert_one({
+            "url": url,
+            "timestamp": datetime.now(),
+            "status": STATUS_PENDING,
+            "input_file": filename,
+            "output_file": filename + "_out",
+        })
+
+    image_file(filename + '.image', filename)
+
 
     print("summarising input text...")
     data = summarise(db, url, filename)
