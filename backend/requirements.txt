@@ -6,3 +6,4 @@ requests
 langchain
 openai
 pyppeteer
+langchain-community
