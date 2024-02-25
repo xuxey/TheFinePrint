@@ -41,23 +41,17 @@ async def render_link(db, url, filename, timeout=4):
     await browser.close()
 
 
-def pdf_file(url, text_file):
-    response = urllib.request.urlopen(url)
-    pdf_file = text_file + ".pdf"
-    with open(pdf_file, 'wb') as file:
-        file.write(response.read())
+def pdf_file(pdf_file, text_file):
+    #response = urllib.request.urlopen(url)
+    #pdf_file = text_file + ".pdf"
 
     os.system(f"pdftotext {pdf_file} {text_file}")
     print("PDF to TEXT completed")
 
 
-def image_file(url, text_file, ext):
-    response = urllib.request.urlopen(url)
-
-    image_file = text_file + ext
-
-    with open(image_file, 'wb') as file:
-        file.write(response.read())
+def image_file(image_file, text_file):
+    #response = urllib.request.urlopen(url)
+    #image_file = text_file + ext
 
     print("Image save Completed")
     os.system(f"tesseract {image_file} {text_file}")
