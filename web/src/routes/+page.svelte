@@ -10,7 +10,7 @@
 			<div class="text-blue-700">Fine Print</div>
 		</span>
 		<div class="mt-3 text-2xl">
-			Until now, long drawn out legal documents to keep you in the dark.
+			Until now, lengthy legal documents have kept you in the dark.
 			<br />
 			<br />
 			With
