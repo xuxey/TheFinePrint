@@ -8,6 +8,7 @@
 		<h2>Leases, Insurance, Credit Reports, or even the Constitution.</h2>
 		<h2>We've got you covered.</h2>
 	</div>
+
 	<div class="flex md:flex-row flex-col gap-5">
 		<ImageUpload />
 		<FileUpload />
