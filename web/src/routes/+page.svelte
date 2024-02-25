@@ -22,7 +22,7 @@
 	<img
 		src="/assets/contract.svg"
 		alt="Man having trouble reading a huge contract"
-		class="h-2/3 aspect-auto"
+		class="h-2/3 aspect-auto floating-element"
 	/>
 </span>
 <div class="pb-20 pt-28" id="how-it-works">
@@ -60,6 +60,15 @@
 	</div>
 </div>
 
+<div id="traps" class="pb-20 flex flex-col items-center">
+	<h1 class="text-4xl font-serif text-center py-4">Try It Yourself!</h1>
+	<p class="text-center font-sans">Upload images or PDFs of your legal contracts.</p>
+	<a
+		href="/tryit"
+		class="p-3 px-5 rounded-xl bg-gradient-to-l from-purple-700 to-blue-800 font-sans text-2xl text-white mt-5"
+		>Let's Go!</a
+	>
+</div>
 <div id="traps" class="pb-20">
 	<h2 class="text-4xl font-serif mb-4">Common Booby Traps</h2>
 	<div class="flex flex-col gap-10">
