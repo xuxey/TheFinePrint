@@ -11,14 +11,18 @@
 
 	const sendDocumentRequest = async () => {
 		var data = new FormData();
-		data.append('file', files[0]);
+		data.append('file-upload', files[0]);
+		console.log(data)
 
 		const url = generateRandomString(10);
 		const response = await fetch(
 			`${API_URL}/summarise_pdf?${new URLSearchParams({ url, access_code: ACCESS_CODE })}`,
 			{
 				method: 'POST',
-				body: data
+				body: data,
+				headers: {
+					"Content-Type": "multipart/form-data"
+				}
 			}
 		);
 		loading = true;
